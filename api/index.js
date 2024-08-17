@@ -7,6 +7,11 @@ const userIds = new Set();
 // Middleware to parse URL-encoded bodies (necessary for form submissions)
 app.use(express.urlencoded({ extended: true }));
 
+// Route to serve the main page
+app.get('/', (req, res) => {
+    res.send('<html><body><h1>Hello</h1><p>Welcome to the main page!</p></body></html>');
+});
+
 // Route to check if a user exists
 app.get('/check_user', (req, res) => {
     const id = req.query.id;
