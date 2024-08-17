@@ -15,11 +15,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    max: 30, // limit each IP to 30 requests per minute
-    message: 'Too many requests from this IP, please try again later.'
+    windowMs: 2 * 1000, // 2 seconds
+    max: 5, // limit each IP to 5 requests every 2 seconds
+    message: 'Too many requests from this IP, please try again later.',
 });
+
 app.use(limiter);
+
 
 // Middleware to check API key
 app.use((req, res, next) => {
