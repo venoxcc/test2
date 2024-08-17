@@ -43,8 +43,8 @@ app.get('/check_user', (req, res) => {
 });
 
 // Route to add a user
-app.post('/add_user', (req, res) => {
-    const id = req.body.id;
+app.get('/add_user', (req, res) => {
+    const id = req.query.id;
 
     if (!id) {
         return res.status(400).json({ error: "ID is required" });
@@ -65,7 +65,7 @@ app.get('/', (req, res) => {
         <p>Available routes:</p>
         <ul>
             <li><strong>/check_user</strong> - Check if a user exists (GET)</li>
-            <li><strong>/add_user</strong> - Add a new user (POST)</li>
+            <li><strong>/add_user</strong> - Add a new user (GET)</li>
         </ul>
     `);
 });
