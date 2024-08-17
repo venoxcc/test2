@@ -1,15 +1,33 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
+require('dotenv').config();
+
 const app = express();
 
 // In-memory database (simple set to store user IDs)
 const userIds = new Set();
 
-// Middleware to parse URL-encoded bodies (necessary for form submissions)
+// Middleware to parse JSON bodies (for POST requests)
+app.use(express.json());
+
+// Middleware to parse URL-encoded bodies (for form submissions)
 app.use(express.urlencoded({ extended: true }));
 
-// Route to serve the main page
-app.get('/', (req, res) => {
-    res.send('<html><body><h1>Hello</h1><p>Welcome to the main page!</p></body></html>');
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
+
+// Middleware to check API key
+app.use((req, res, next) => {
+    const apiKey = req.header('x-api-key');
+    if (apiKey !== process.env.API_KEY) {
+        return res.status(403).json({ error: 'Forbidden: Invalid API key' });
+    }
+    next();
 });
 
 // Route to check if a user exists
@@ -25,8 +43,8 @@ app.get('/check_user', (req, res) => {
 });
 
 // Route to add a user
-app.get('/add_user', (req, res) => {
-    const id = req.query.id;
+app.post('/add_user', (req, res) => {
+    const id = req.body.id;
 
     if (!id) {
         return res.status(400).json({ error: "ID is required" });
@@ -38,6 +56,24 @@ app.get('/add_user', (req, res) => {
 
     userIds.add(id);
     return res.status(201).json({ message: `ID ${id} added` });
+});
+
+// Route for the main page
+app.get('/', (req, res) => {
+    res.send(`
+        <h1>Welcome to the User API</h1>
+        <p>Available routes:</p>
+        <ul>
+            <li><strong>/check_user</strong> - Check if a user exists (GET)</li>
+            <li><strong>/add_user</strong> - Add a new user (POST)</li>
+        </ul>
+    `);
+});
+
+// Middleware to handle errors
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something went wrong!' });
 });
 
 // Start the server
